@@ -1,5 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
+import UserInformationPage from "./pages/UserInformationPage";
+import LeaderboardPage from "./pages/Leaderboard";
 
 export const router = createBrowserRouter([
     {
@@ -7,5 +9,13 @@ export const router = createBrowserRouter([
         element: <LandingPage />,
       
     },
+    {
+        path: "/user/:username",    
+        element: <UserInformationPage />, 
+    },
+    {
+        path: "/leaderboard",
+        element: <LeaderboardPage />,
+    }
 
 ])
