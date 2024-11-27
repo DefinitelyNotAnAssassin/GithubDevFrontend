@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { motion, AnimatePresence } from "framer-motion"
 import { Book, Code, FileText, Loader, RefreshCcw} from 'lucide-react'
-import { API_URL } from "@/constants/UrlConstant"
+import { API_URL, WEBSOCKET_URL } from "@/constants/UrlConstant"
 import Navbar from "@/components/ui/navbar"
 import { Progress } from "@/components/ui/progress"
 
@@ -41,38 +41,50 @@ export default function EnhancedDeveloperStatsPage() {
   const [processedRepos, setProcessedRepos] = useState(0)
 
   useEffect(() => {
-    const searchData = window.localStorage.getItem('searchData') 
-    const ignore_dirs = searchData ? JSON.parse(searchData).ignore_dirs :  ""
-    const ignore_extensions = searchData ? JSON.parse(searchData).ignore_extensions : ""
-    const eventSource = new EventSource(`${API_URL}/getLinesOfCode/${username}?ignore_dirs=${ignore_dirs}&ignore_extensions=${ignore_extensions}`)
+    const searchData = window.localStorage.getItem('searchData');
+    const ignore_dirs = searchData ? JSON.parse(searchData).ignore_dirs : "";
+    const ignore_extensions = searchData ? JSON.parse(searchData).ignore_extensions : "";
 
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data)
+    const socket = new WebSocket(`${WEBSOCKET_URL}/getLinesOfCode/${username}`);
+
+    socket.onopen = () => {
+      socket.send(JSON.stringify({
+        username,
+        ignore_dirs,
+        ignore_extensions
+      }));
+    };
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
       if (data.type === 'progress') {
-        
-        setCurrentRepo(data.repo)
-        setProcessedRepos(data.processedRepos)
-        setTotalRepos(data.totalRepos)
-        setProgress((data.processedRepos / data.totalRepos) * 100)
+        setCurrentRepo(data.repo);
+        setProcessedRepos(data.processedRepos);
+        setTotalRepos(data.totalRepos);
+        setProgress((data.processedRepos / data.totalRepos) * 100);
       } else if (data.type === 'result') {
-        setLinesOfCode(data.total_lines_of_code)
-        setLinesOfCodePerLanguage(data.lines_of_code_per_language)
+        setLinesOfCode(data.total_lines_of_code);
+        setLinesOfCodePerLanguage(data.lines_of_code_per_language);
       } else if (data.type === 'complete') {
-        setIsLoading(false)
-        eventSource.close()
+        setIsLoading(false);
+        socket.close();
+      } else if (data.type === 'error') {
+        console.error(data.message);
+        setIsLoading(false);
+        socket.close();
+      } else if (data.type === 'heartbeat') {
+        socket.send(JSON.stringify({ type: 'heartbeat_response' }));
       }
-    }
+    };
 
-    eventSource.onerror = (error) => {
-      console.error('EventSource failed:', error)
-      setIsLoading(false)
-      eventSource.close()
-    }
+    const handleBeforeUnload = () => {
+      socket.send(JSON.stringify({ type: 'close' }));
+      socket.close();
+    };
 
-    return () => {
-      eventSource.close()
-    }
-  }, [username])
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+  }, [username]);
 
   useEffect(() => {
     const excludedExtensions = ['.log', '.gitignore', '.gitattributes', '.png', '.jpg']
@@ -122,7 +134,7 @@ export default function EnhancedDeveloperStatsPage() {
   const totalWords = totalCharacters / 5
 
   const StatCard = ({ title, value, icon: Icon }: { title: string; value: string | number; icon: React.ElementType }) => (
-    <Card className="bg-gray-800 text-white overflow-hidden">
+    <Card className=" text-white overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -133,11 +145,6 @@ export default function EnhancedDeveloperStatsPage() {
     </Card>
 
   )
-
-
-
-
-
 
   const refreshAccountData = () => {
     setIsLoading(true)
@@ -185,7 +192,7 @@ export default function EnhancedDeveloperStatsPage() {
   return (
     <>
       <Navbar isTransparent/>
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8 py-12">
+      <div className="min-h-screen bg-gray-900 dark:bg-[#101010] text-white p-8 py-12">
         <AnimatePresence>
           {isLoading ? (
             <motion.div
@@ -224,7 +231,7 @@ export default function EnhancedDeveloperStatsPage() {
 
               <div>
                 {githubUser && (
-                  <Card className="bg-gray-800 text-white col-span-full lg:col-span-1 my-8">
+                  <Card className="col-span-full lg:col-span-1 my-8">
                     <CardContent className="flex flex-col items-center pt-6">
                       <Avatar className="w-24 h-24 mb-4">
                       <AvatarImage src={githubUser.avatar_url} alt={githubUser.name} />
@@ -265,7 +272,7 @@ export default function EnhancedDeveloperStatsPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-8 mb-8">
-                <Card className="bg-gray-800">
+                <Card>
                   <CardHeader>
                     <CardTitle className="text-white font-semibold">Top 10 Languages</CardTitle>
                   </CardHeader>
@@ -288,7 +295,7 @@ export default function EnhancedDeveloperStatsPage() {
                 </Card>
               </div>
 
-              <Card className="bg-gray-800 text-white">
+              <Card>
                 <CardHeader>
                   <CardTitle>Language Comparison</CardTitle>
                 </CardHeader>
@@ -325,6 +332,3 @@ export default function EnhancedDeveloperStatsPage() {
     </>
   )
 }
-
-
-

@@ -56,7 +56,7 @@ export default function LeaderboardPage() {
     return (
         <>
             <Navbar isTransparent />
-            <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8 py-24">
+            <div className="min-h-screen bg-gray-900 dark:bg-[#101010] text-white p-8 py-24">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}

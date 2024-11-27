@@ -9,6 +9,7 @@ import { API_URL } from '@/constants/UrlConstant'
 import Navbar from '@/components/ui/navbar'
 import { Badge } from "@/components/ui/badge"
 import { useToast } from '@/hooks/use-toast'
+import { useNavigate } from 'react-router-dom'
 
 interface SearchOptions {
   ignore_dirs: string[];
@@ -21,7 +22,7 @@ export default function LandingPage() {
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false)
   const [newItem, setNewItem] = useState('')
   const [activeTab, setActiveTab] = useState<'ignore_dirs' | 'ignore_extensions'>('ignore_dirs')
-
+  const navigate = useNavigate()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export default function LandingPage() {
         ignore_extensions: searchOptions.ignore_extensions.length ? searchOptions.ignore_extensions : ['None']
       }
       window.localStorage.setItem('searchData', JSON.stringify(searchData))
-      window.location.href = `/user/${username}`
+      navigate(`/user/${username}`)
     }
   }
 
@@ -105,7 +106,7 @@ export default function LandingPage() {
   return (
     <>
       <Navbar isTransparent />
-      <div className="min-h-screen w-full flex flex-col justify-center items-center bg-[#101010] p-4">
+      <div className="h-screen w-full flex flex-col justify-center items-center bg-gray-900 dark:bg-[#101010] p-4">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -113,7 +114,7 @@ export default function LandingPage() {
           className="text-center mb-8"
         >
           <motion.div
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1 }}
             whileTap={{ scale: 0.9 }}
             className="inline-block"
           >
@@ -162,7 +163,7 @@ export default function LandingPage() {
 
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: isCustomizeOpen ? 'auto' : 0, opacity: isCustomizeOpen ? 1 : 0 }}
+            animate={{ height: isCustomizeOpen ? 'auto' : 0, opacity: isCustomizeOpen ? 1 : 0, display: isCustomizeOpen ? 'block' : 'none' }}
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >

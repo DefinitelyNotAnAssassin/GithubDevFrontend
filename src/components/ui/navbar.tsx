@@ -1,21 +1,30 @@
 'use client'
 
-import { BookOpen, Menu } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BookOpen, Menu, Sun, Moon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-
+import { useTheme } from '@/contexts/ThemeContext'
 
 const links = [ 
     { name: 'Home', path: '/' },    
     { name: 'Leaderboard', path: '/leaderboard' },
 ]
 
-
 export default function Navbar({ isTransparent = false }) {
+    const [isDarkTheme, setIsDarkTheme] = useState(false)
+    const { theme, toggleTheme } = useTheme()   
+    useEffect(() => {
+        setIsDarkTheme(theme === 'dark')
+    }, [theme])
+    
+
+
+
 
     return (
-        <header className={`px-4 lg:px-6 h-16 flex items-center justify-between ${isTransparent ? 'bg-transparent absolute w-full text-white' : 'bg-white shadow-md'}`}>
+        <header className={`px-4 lg:px-6 h-16 flex items-center justify-between ${isTransparent ? 'bg-transparent absolute w-full text-white' : 'bg-white shadow-md'} ${isDarkTheme ? 'dark' : ''}`}>
             <Link className="flex items-center justify-center" to="/">
                 <BookOpen className="h-6 w-6 mr-2" />
                 <span className="font-bold">Github Dev</span>
@@ -28,7 +37,10 @@ export default function Navbar({ isTransparent = false }) {
                         </Link>
                     ))}
                 </nav>
-              
+                <Button variant="ghost" size="icon" onClick={toggleTheme}>
+                    {isDarkTheme ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+                    <span className="sr-only">Toggle theme</span>
+                </Button>
             </div>
             <Sheet>
                 <SheetTrigger asChild>
@@ -45,7 +57,10 @@ export default function Navbar({ isTransparent = false }) {
                             </Link>
                         ))}
                     </nav>
-                  
+                    <Button variant="ghost" size="icon" onClick={toggleTheme} className="mt-4">
+                        {isDarkTheme ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+                        <span className="sr-only">Toggle theme</span>
+                    </Button>
                 </SheetContent>
             </Sheet>
         </header>
